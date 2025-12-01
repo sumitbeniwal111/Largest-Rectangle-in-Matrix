@@ -8,7 +8,11 @@ from sqlalchemy import create_engine, Column, Integer, Float, Text
 from sqlalchemy.orm import sessionmaker, declarative_base
 import json
 
-# Database Setup
+"""
+Database Setup
+Creates a SQLite database file (logs.db) and
+prepares a table that store request, response and execution time
+"""
 
 DATABASE_URL = "sqlite:///./logs.db"
 
@@ -18,6 +22,13 @@ SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
 class APILog(Base):
+    """
+    Database table 
+    Columns:
+    - request_data: input matrix
+    - response_data: output
+    - execution_time_ms: time taken by API to compute
+    """
     __tablename__ = "api_logs"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -27,11 +38,20 @@ class APILog(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# FastAPI App
 
+"""
+FastAPI App Initialization
+"""
 app = FastAPI()
 
 class MatrixInput(BaseModel):
+    """
+    Validates input matrix
+    - matrix is not empty
+    - rows are equal length
+    - rows are not empty
+    - all values are integers
+    """
     matrix: List[List[Any]]
 
     @validator("matrix")
@@ -54,7 +74,16 @@ class MatrixInput(BaseModel):
 
 
 
-# Largest Rectangle Function
+"""
+largest_rectangle Function take input a 2D matrix
+return Output (list of numbers with max area, maximum area)
+Working:
+- For each number in the matrix:
+      Build histogram heights row by row
+      Use stack method to find largest rectangle
+- Keep track of max area found
+- If multiple numbers have same area → return all
+"""
 
 def largest_rectangle(matrix: List[List[int]]) -> tuple:
     if not matrix:
@@ -67,6 +96,10 @@ def largest_rectangle(matrix: List[List[int]]) -> tuple:
         unique_numbers.update(row)
 
     def largest_histogram_area(heights):
+        """
+        Input is list of heights
+        Output largest rectangle area for that histogram
+        """
         stack = []
         max_area = 0
         heights.append(0)
@@ -109,7 +142,16 @@ def largest_rectangle(matrix: List[List[int]]) -> tuple:
     return (best_numbers, max_area)
 
 
-# API Endpoint
+"""
+API Endpoint: POST /largest-rectangle
+Take input matrix in JSON format
+return output numbers with largest rectangle and area
+Working:
+- Start timer
+- Run largest_rectangle()
+- Save request + response + time in DB
+- Return result
+"""
 
 @app.post("/largest-rectangle")
 def get_largest_rectangle(data: MatrixInput):
