@@ -55,7 +55,7 @@ class MatrixInput(BaseModel):
     matrix: List[List[Any]]
 
     @validator("matrix")
-    def check_integers(cls, v):
+    def validate_matrix(cls, v):
         if len(v) == 0:
             raise ValueError("Matrix cannot be empty.")
 
@@ -152,6 +152,9 @@ Working:
 - Save request + response + time in DB
 - Return result
 """
+@app.get("/")
+def home():
+    return {"message": "API is running. Go to /docs for documentation."}
 
 @app.post("/largest-rectangle")
 def get_largest_rectangle(data: MatrixInput):
@@ -176,3 +179,4 @@ def get_largest_rectangle(data: MatrixInput):
     db.close()
 
     return result
+
